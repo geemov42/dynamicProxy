@@ -2,6 +2,7 @@ package be.geemov42.dynamicproxy.utils;
 
 import be.geemov42.dynamicproxy.holder.ValueHolder;
 import lombok.NonNull;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.InvocationHandler;
@@ -150,7 +151,9 @@ public class DynamicProxyUtils {
             return applicationContext.getBeansOfType(beanType).entrySet().stream()
                     .filter(entry -> entry.getKey().startsWith(beanNamePrefix) && isMatchingDiscriminator(entry.getKey()))
                     .map(Map.Entry::getValue)
-                    .findFirst()
+                    .reduce((t, t2) -> {
+                        throw new NoUniqueBeanDefinitionException(beanType, "Multiple beans found for discriminator " + beanNamePrefix);
+                    })
                     .orElseThrow(() -> new ProxyInstanceNotFoundException("No matching bean found!"));
         }
 
